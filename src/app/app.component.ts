@@ -52,7 +52,7 @@ export class AppComponent implements OnInit, OnDestroy {
     }
   }
 
-  logout() { // Add log out function here
+  logout() { 
     this.authService.logoutPopup({
       mainWindowRedirectUri: "/"
     });
