@@ -1,13 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import {Apollo, gql} from 'apollo-angular';
 
-const GRAPH_ENDPOINT = 'Enter_the_Graph_Endpoint_Here/v1.0/me';
+const GRAPH_ENDPOINT = 'https://localhost:7048/graphql';
 
 type ProfileType = {
-  givenName?: string,
-  surname?: string,
-  userPrincipalName?: string,
-  id?: string
+  name?: string
 };
 
 @Component({
@@ -16,10 +14,11 @@ type ProfileType = {
   styleUrls: ['./profile.component.css']
 })
 export class ProfileComponent implements OnInit {
-  profile!: ProfileType;
+  movie!: ProfileType;
 
   constructor(
-    private http: HttpClient
+    private http: HttpClient,
+    private apollo: Apollo
   ) { }
 
   ngOnInit() {
@@ -27,9 +26,25 @@ export class ProfileComponent implements OnInit {
   }
 
   getProfile() {
-    this.http.get(GRAPH_ENDPOINT)
-      .subscribe(profile => {
-        this.profile = profile;
+   
+
+      this.apollo
+      .watchQuery({
+        query: gql`
+          {
+            movie(id: "72d95bfd-1dac-4bc2-adc1-f28fd43777fd") {
+            id
+            name
+            reviews {
+              reviewer
+              stars
+            }
+          }
+          }
+        `,
+      })
+      .valueChanges.subscribe((result: any) => {
+        this.movie = result?.data?.movie;
       });
   }
 }

@@ -1,9 +1,12 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { HTTP_INTERCEPTORS, HttpClientModule } from "@angular/common/http";
-
 import {ToolbarModule} from 'primeng/toolbar';
 import {ButtonModule} from 'primeng/button';
+
+import {ApolloModule, APOLLO_OPTIONS} from 'apollo-angular';
+import {HttpLink} from 'apollo-angular/http';
+import {InMemoryCache} from '@apollo/client/core';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -22,10 +25,12 @@ const isIE = window.navigator.userAgent.indexOf('MSIE ') > -1 || window.navigato
     ProfileComponent
   ],
   imports: [
+    HttpClientModule,
     BrowserModule,
     AppRoutingModule,
     ToolbarModule,
     ButtonModule,
+    ApolloModule,
     MsalModule.forRoot( new PublicClientApplication({
       auth: {
         clientId: 'Enter_the_Application_Id_here', // This is your client ID
@@ -46,11 +51,22 @@ const isIE = window.navigator.userAgent.indexOf('MSIE ') > -1 || window.navigato
     {
       interactionType: InteractionType.Redirect,
       protectedResourceMap: new Map([
-        ['Enter_the_Graph_Endpoint_Here/v1.0/me', ['user.read']],
+        ['https://localhost:7048/graphql', ['user.read']],
       ]),
     })
   ],
-  providers: [MsalGuard],
+  providers: [MsalGuard, {
+    provide: APOLLO_OPTIONS,
+    useFactory: (httpLink: HttpLink) => {
+      return {
+        cache: new InMemoryCache(),
+        link: httpLink.create({
+          uri: 'https://localhost:7048/graphql',
+        }),
+      };
+    },
+    deps: [HttpLink],
+  }],
   bootstrap: [AppComponent, MsalRedirectComponent ]
 })
 export class AppModule { }
